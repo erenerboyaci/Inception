@@ -5,7 +5,7 @@
 
 DB_USER=${DB_USER}
 DB_NAME=${DB_NAME}
-DB_PASSWORD=$(cat /etc/security/db_password.txt)
+DB_PASSWORD=$(cat /run/secrets/db_password)
 
 echo "Creating database ${DB_NAME} and user ${DB_USER}..."
 

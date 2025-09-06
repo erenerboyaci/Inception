@@ -2,14 +2,14 @@
 
 # Get credentials from environment and security files
 DB_USER=${DB_USER}
-DB_PASSWORD=$(cat /etc/security/db_password.txt)
-DB_ROOT_PASSWORD=$(cat /etc/security/db_root_password.txt)
+DB_PASSWORD=$(cat /run/secrets/db_root_password)
+DB_ROOT_PASSWORD=$(cat ../run/secrets/db_root_password)
 WP_USER=$(sed -n '1p' /etc/security/credentials.txt)
 WP_EMAIL=$(sed -n '5p' /etc/security/credentials.txt)
-WP_PASSWORD=$(cat /etc/security/db_password.txt)
+WP_PASSWORD=$(cat /run/secrets/db_root_password)
 WP_USER_ADMIN=${WP_USER_ADMIN}
 WP_EMAIL_ADMIN=${WP_EMAIL_ADMIN}
-WP_PASSWORD_ADMIN=$(cat /etc/security/db_password.txt)
+WP_PASSWORD_ADMIN=$(cat /run/secrets/db_root_password)
 
 # Wait for MariaDB to be available
 until nc -z "${DB_HOST}" 3306; do

@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Get credentials from environment and security files
-DB_ROOT_PASSWORD=$(cat /etc/security/db_root_password.txt)
-DB_USER=${DB_USER}
-DB_PASSWORD=$(cat /etc/security/db_password.txt)
 DB_NAME=${DB_NAME}
+DB_USER=${DB_USER}
+DB_PASSWORD=$(cat /run/secrets/db_password)
+WP_USER_ADMIN=${WP_USER_ADMIN}
+DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
 # Initialize database if it doesn't exist
 if [ ! -d "/var/lib/mysql/mysql" ]; then
@@ -30,7 +31,9 @@ EOSQL
 mysql -u root -p"$DB_ROOT_PASSWORD" <<EOSQL
 CREATE DATABASE IF NOT EXISTS $DB_NAME;
 CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+CREATE USER IF NOT EXISTS '$WP_USER_ADMIN'@'%' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';
+GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$WP_USER_ADMIN'@'%';
 FLUSH PRIVILEGES;
 EOSQL
 

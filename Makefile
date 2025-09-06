@@ -2,7 +2,11 @@ FILE = -f srcs/docker-compose.yml
 COMPOSE = docker compose
 
 
-up:
+dirs:
+	mkdir -p /home/merboyac/data/mysql
+	mkdir -p /home/merboyac/data/wordpress
+
+up: dirs
 	$(COMPOSE) $(FILE) up -d
 
 build:
@@ -17,7 +21,14 @@ clean:
 	$(COMPOSE) $(FILE) down -v --remove-orphans
 
 fclean: clean
+	$(COMPOSE) $(FILE) down -v --rmi all --remove-orphans
 	docker system prune -af
+	sudo rm -rf /home/merboyac/data/mysql
+	sudo rm -rf /home/merboyac/data/wordpress
+	rm -f ../secrets/db_password.txt ../secrets/db_root_password.txt
+	rm -rf ./secrets/certs
+	sudo rm -rf /home/merboyac/data/mysql
+	sudo rm -rf /home/merboyac/data/wordpress
 
 certs:
 	mkdir -p ./secrets/certs
@@ -27,4 +38,4 @@ certs:
     -out ./secrets/certs/server.crt\
     -subj "/CN=localhost"
 
-.PHONY: up build down restart clean fclean certs
+.PHONY: dirs up build down restart clean fclean certs

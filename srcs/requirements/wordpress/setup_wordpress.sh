@@ -3,17 +3,15 @@
 # This script is called by the entrypoint.sh to setup WordPress
 # Get credentials from environment and security files
 DB_USER=${DB_USER}
-DB_PASSWORD=$(cat /etc/security/db_password.txt)
+DB_PASSWORD=$(cat /run/secrets/db_password)
 DB_NAME=${DB_NAME}
 DB_HOST=${DB_HOST}
 DOMAIN_NAME=${DOMAIN_NAME}
 WP_TITLE=${WP_TITLE}
-WP_USER=$(sed -n '1p' /etc/security/credentials.txt)
-WP_EMAIL=$(sed -n '5p' /etc/security/credentials.txt)
-WP_PASSWORD=$(cat /etc/security/db_password.txt)
 WP_USER_ADMIN=${WP_USER_ADMIN}
 WP_EMAIL_ADMIN=${WP_EMAIL_ADMIN}
-WP_PASSWORD_ADMIN=$(cat /etc/security/db_password.txt)
+# Use the root password for WordPress admin for better security
+WP_PASSWORD_ADMIN=$(cat /run/secrets/db_root_password)
 
 # Wait for MariaDB to be available
 until nc -z "${DB_HOST}" 3306; do
@@ -36,9 +34,10 @@ if [ ! -f /var/www/html/wp-config.php ]; then
         echo "Error: Failed to install WordPress."
         exit 1
     fi
-    if ! wp user create "${WP_USER}" "${WP_EMAIL}" --role=author --user_pass="${WP_PASSWORD}" --allow-root --path=/var/www/html; then
-        echo "Error: Failed to create WordPress user."
-        exit 1
+    
+    # Create regular user account
+    if ! wp user create "${DB_USER}" "${MYSQL_EMAIL}" --role=author --user_pass="${DB_PASSWORD}" --allow-root --path=/var/www/html; then
+        echo "Warning: Failed to create regular WordPress user, may already exist."
     fi
     
     # Enable pretty permalinks
