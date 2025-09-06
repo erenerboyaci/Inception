@@ -1,0 +1,92 @@
+🔹 Senin Kullanım Senaryon
+
+DB Container (3306): MySQL/MariaDB çalışıyor. Kalıcı veriyi volume (DB) içinde saklıyorsun.
+
+WordPress+PHP Container (9000): WordPress kodu + PHP-FPM motoru. WordPress volume’ünde dosyaların duruyor. DB’ye bağlanıp içerikleri çekiyor.
+
+NGINX Container (443): İnternetten gelen istekleri karşılıyor. SSL + statik dosya + reverse proxy işi yapıyor. Kullanıcı aslında NGINX ile konuşuyor, arkadaki WordPress+DB’yi görmüyor.
+
+Özetle:
+Kullanıcı tarayıcıdan https://seninsite.com → istek NGINX’e (443) → NGINX WordPress’e (9000) → WordPress DB’den (3306) veriyi çekiyor → geri NGINX → tarayıcıya cevap.
+
+
+🔎 Açıklama Parça Parça
+mariadb servisi
+
+build: ./requirements/mariadb → kendi Dockerfile’ını kullanarak image üretiyor.
+
+volumes → host’taki /home/merboyac/data/mariadb klasörünü container’ın /var/lib/mysql dizinine bağlıyor. Veriler kalıcı.
+
+environment → DB adı, kullanıcı adları env var olarak gidiyor.
+
+secrets → şifreler dosyadan okunuyor, environment’a direkt yazılmamış → güvenli.
+
+restart: always → container düşse bile ayağa kalkacak.
+
+wordpress servisi
+
+build: ./requirements/wordpress → yine custom image.
+
+volumes → /home/merboyac/data/wordpress → kalıcı WordPress dosyaları.
+
+environment → DB bilgilerini alıyor, ayrıca domain ve admin hesabı için değerler.
+
+depends_on: mariadb → DB ayağa kalkmadan WordPress başlamıyor.
+
+secrets → DB şifrelerini buradan çekiyor.
+
+nginx servisi
+
+build: ./requirements/nginx → custom Dockerfile ile kendi nginx image’in.
+
+ports → dışarıya açtığın kapılar:
+
+443:443 → HTTPS (kullanıcı buradan siteye girer).
+
+80:80 → HTTP (istenirse HTTPS’e redirect).
+
+volumes:
+
+WordPress dosyalarına erişim → wordpress_data.
+
+./requirements/nginx/conf.d → kendi NGINX config’lerin (server blokları, proxy_pass vs).
+
+./requirements/nginx/certs → SSL sertifikaları (Let’s Encrypt vs).
+
+depends_on: wordpress → WP çalışmadan NGINX ayağa kalkmaz.
+
+restart: always.
+
+secrets ve volumes
+
+Şifreler dosyalarda saklanıyor.
+
+DB ve WP için ayrı volume var. NGINX WP’nin volume’ünü mount ediyor, böylece PHP-FPM’in işlediği dosyalara erişip servis edebiliyor.
+
+networks
+
+Hepsi inception_net ağına bağlı. Container’lar kendi içinde DNS üzerinden konuşabiliyor (mariadb, wordpress, nginx).
+
+🎯 Senin Kullanım Senaryon
+
+Senin ihtiyacın WordPress blogunu/public site’ini production gibi güvenli ve düzgün çalıştırmak:
+
+Kullanıcı tarayıcıdan https://seninsite.com giriyor.
+
+İstek NGINX container’ına (443) düşüyor.
+
+NGINX → WordPress+PHP-FPM’e (9000).
+
+WordPress DB’den (3306) içerik çekiyor.
+
+Cevap NGINX üzerinden kullanıcıya dönüyor.
+
+Senaryoda NGINX şunları sağlıyor:
+
+Güvenlik: WordPress direkt dışarıya açılmıyor.
+
+Performans: Statik dosyaları (resim, js, css) NGINX çok hızlı verir.
+
+SSL: Sertifika işini WP’ye yıkmazsın, NGINX halleder.
+
+Ölçeklenebilirlik: İleride birden çok WP container koyarsın, NGINX yük dağıtır.

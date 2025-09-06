@@ -1,0 +1,68 @@
+volumes:
+  data_dir:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/merboyac/data/mysql
+  wordpress:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/merboyac/data/wordpress
+
+networks:
+  wordpress_net:
+    driver: bridge
+
+services:
+  mariadb:
+    container_name: mariadb
+    build: ./requirements/mariadb
+    restart: always
+    environment:
+      DB_NAME: ${MYSQL_DATABASE_NAME}
+      DB_USER: ${MYSQL_USER}
+      DB_HOST: mariadb
+    volumes:
+      - data_dir:/var/lib/mysql
+      - ../secrets:/etc/security
+    networks:
+      - wordpress_net
+
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    restart: always
+    environment:
+        DB_NAME: ${MYSQL_DATABASE_NAME}
+        DB_USER: ${MYSQL_USER}
+        DB_HOST: mariadb
+        DOMAIN_NAME: ${DOMAIN_NAME}
+        WP_TITLE: ${TITLE}
+        WP_USER_ADMIN: ${WORDPRESS_ADMIN_NAME}
+        WP_EMAIL_ADMIN: ${WORDPRESS_ADMIN_EMAIL}
+    volumes:
+      - wordpress:/var/www/html
+      - ../secrets:/etc/security
+    networks:
+      - wordpress_net
+    depends_on:
+      - mariadb
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      CERTIFICICATES_OUT: ${CERTIFICICATES_OUT}
+      CERTIFICICATES_KEYOUT: ${CERTIFICICATES_KEYOUT}
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - wordpress_net
+    depends_on:
+      - wordpress
+    restart: unless-stopped
