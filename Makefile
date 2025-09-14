@@ -10,7 +10,7 @@ dirs:
 	mkdir -p /home/merboyac/data/wordpress
 
 build:
-	$(COMPOSE) $(FILE) build
+	$(COMPOSE) $(FILE) --build
 
 down:
 	$(COMPOSE) $(FILE) down
