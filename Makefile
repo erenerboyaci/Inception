@@ -2,12 +2,12 @@ FILE = -f srcs/docker-compose.yml
 COMPOSE = docker compose
 
 
+up: dirs
+	$(COMPOSE) $(FILE) up -d
+
 dirs:
 	mkdir -p /home/merboyac/data/mysql
 	mkdir -p /home/merboyac/data/wordpress
-
-up: dirs
-	$(COMPOSE) $(FILE) up -d
 
 build:
 	$(COMPOSE) $(FILE) build

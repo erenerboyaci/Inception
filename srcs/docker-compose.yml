@@ -1,10 +1,8 @@
-
 services:
   mariadb:
     secrets:
       - db_password
       - db_root_password
-    container_name: mariadb
     build: ./requirements/mariadb
     restart: always
     env_file:
@@ -16,9 +14,8 @@ services:
 
   wordpress:
     secrets:
-    - db_password
-    - db_root_password
-    container_name: wordpress
+      - db_password
+      - db_root_password
     build: ./requirements/wordpress
     restart: always
     env_file:
@@ -29,8 +26,8 @@ services:
       - wordpress_net
     depends_on:
       - mariadb
+
   nginx:
-    container_name: nginx
     build: ./requirements/nginx
     env_file:
       - .env
@@ -42,13 +39,14 @@ services:
       - wordpress_net
     depends_on:
       - wordpress
-    restart: unless-stopped
+    restart: always
 
 secrets:
   db_password:
     file: ../secrets/db_password.txt
   db_root_password:
     file: ../secrets/db_root_password.txt
+
 volumes:
   data_dir:
     driver: local

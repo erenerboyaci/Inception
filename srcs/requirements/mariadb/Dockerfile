@@ -1,20 +1,19 @@
 FROM debian:bookworm
 
-RUN  apt-get update && apt-get install -y \
-     mariadb-server \
-     mariadb-client \
-     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    mariadb-server mariadb-client \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create directory for initialization scripts
-RUN mkdir -p /docker-entrypoint-initdb.d/
+COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
 
-# Configure MariaDB to accept connections from any IP
-RUN sed -i 's/bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY tools/dbinit.sh /usr/local/bin/dbinit.sh
+RUN chmod +x /usr/local/bin/dbinit.sh
 
-# Copy the main database initialization script
-COPY tools/dbinit.sh /dbinit.sh
-RUN chmod +x /dbinit.sh
+RUN mkdir -p /var/lib/mysql /run/mysqld  && \
+    chown -R mysql:mysql /var/lib/mysql /run/mysqld
 
 EXPOSE 3306
 
-ENTRYPOINT [ "dbinit.sh" ]
+ENTRYPOINT ["/usr/local/bin/dbinit.sh"]
+
+

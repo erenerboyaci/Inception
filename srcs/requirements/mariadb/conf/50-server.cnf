@@ -3,19 +3,7 @@ user                    = mysql
 socket                  = /run/mysqld/mysqld.sock
 port                    = 3306
 datadir                 = /var/lib/mysql
-log_error               = /var/log/mysql/error.log
-character-set-server    = utf8mb4
-collation-server        = utf8mb4_general_ci
 bind-address            = 0.0.0.0
-
-# Basic performance settings
-max_allowed_packet      = 64M
-thread_stack            = 192K
-key_buffer_size         = 16M
-
-# Disable DNS lookups
 skip-name-resolve
-
-# Allow root login from any host
 skip-networking         = 0
 
