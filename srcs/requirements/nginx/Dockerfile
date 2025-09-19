@@ -1,19 +1,15 @@
-FROM debian:bookworm
+FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y \
-    nginx \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y; apt-get install -y nginx openssl
 
-# Create directories
 RUN mkdir -p /etc/nginx/ssl
 
-# Copy Nginx configuration and initialization script
-COPY conf/nginx.conf /etc/nginx/conf/nginx.conf
-COPY tools/nginx_init.sh /usr/local/bin/nginx_init.sh
-RUN chmod +x /usr/local/bin/nginx_init.sh
+RUN openssl req -x509 -nodes \
+	-days 365 \
+	-newkey rsa:4096 \
+	-keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt \
+	-subj "/C=TR/ST=Kocaeli/L=Kocaeli/O=42/OU=42/CN=merboyac.42.fr"
 
-EXPOSE 443
+COPY ./conf/nginx.conf /etc/nginx/conf.d/nginx.conf
 
-# Setup NGINX and run
-ENTRYPOINT ["/usr/local/bin/nginx_init.sh"]
+CMD ["nginx", "-g", "daemon off;"]

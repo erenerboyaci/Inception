@@ -3,10 +3,12 @@ set -e
 
 DB_PASSWORD=$(cat /run/secrets/db_password)
 WP_PASSWORD_ADMIN=$(cat /run/secrets/db_root_password)
-
+echo "TESTING1"
+echo $DB_HOST
 until nc -z "${DB_HOST}" 3306; do
     sleep 2
 done
+echo "TESTING2"
 
 if [ ! -f /var/www/html/wp-config.php ]; then
     wp core download --allow-root --path=/var/www/html
@@ -19,5 +21,9 @@ if [ ! -f /var/www/html/wp-config.php ]; then
         --user_pass="${DB_PASSWORD}" --allow-root --path=/var/www/html
     chown -R www-data:www-data /var/www/html
 fi
+echo "TESTING3"
 
-exec php-fpm8.2 -F
+chown -R www-data:www-data /var/www/html
+chmod -R 755 /var/www/html
+
+exec php-fpm7.4 -F

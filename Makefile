@@ -10,7 +10,7 @@ dirs:
 	mkdir -p /home/merboyac/data/wordpress
 
 build:
-	$(COMPOSE) $(FILE) --build
+	$(COMPOSE) $(FILE) build
 
 down:
 	$(COMPOSE) $(FILE) down
@@ -23,19 +23,15 @@ clean:
 fclean: clean
 	$(COMPOSE) $(FILE) down -v --rmi all --remove-orphans
 	docker system prune -af
-	sudo rm -rf /home/merboyac/data/mysql
-	sudo rm -rf /home/merboyac/data/wordpress
+	sudo rm -rf /home/merboyac/data/
 	rm -f ../secrets/db_password.txt ../secrets/db_root_password.txt
 	rm -rf ./secrets/certs
 	sudo rm -rf /home/merboyac/data/mysql
 	sudo rm -rf /home/merboyac/data/wordpress
 
-certs:
-	mkdir -p ./secrets/certs
-	openssl req -x509 -nodes -days 365 \
-    -newkey rsa:2048\
-    -keyout ./secrets/certs/server.key\
-    -out ./secrets/certs/server.crt\
-    -subj "/CN=localhost"
+logs:
+	docker logs srcs-mariadb-1
+	docker logs srcs-nginx-1
+	docker logs srcs-wordpress-1
 
-.PHONY: dirs up build down restart clean fclean certs
+.PHONY: dirs up build down restart clean fclean

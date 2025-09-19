@@ -10,7 +10,7 @@ fi
 
 mysqld_safe --skip-networking --datadir=/var/lib/mysql --user=mysql &
 pid="$!"
-
+echo "MARIATEST1"
 until mariadb -uroot -e "SELECT 1;" &>/dev/null; do
     sleep 1
 done
@@ -21,7 +21,7 @@ mariadb -uroot <<-EOSQL
     DROP DATABASE IF EXISTS test;
     FLUSH PRIVILEGES;
 EOSQL
-
+echo "MARIATEST2"
 mariadb -uroot -p"${DB_ROOT_PASS}" <<-EOSQL
     CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
     CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
@@ -30,9 +30,8 @@ mariadb -uroot -p"${DB_ROOT_PASS}" <<-EOSQL
     GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${WP_USER_ADMIN}'@'%';
     FLUSH PRIVILEGES;
 EOSQL
-
+echo "MARIATEST3"
 mysqladmin -uroot -p"${DB_ROOT_PASS}" shutdown
-
 wait "$pid" || true
 
 exec mysqld --user=mysql --datadir=/var/lib/mysql --bind-address=0.0.0.0

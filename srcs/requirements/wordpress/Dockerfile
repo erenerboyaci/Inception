@@ -1,36 +1,19 @@
-FROM debian:bookworm
+FROM debian:bullseye
 
-RUN apt-get update && apt-get install -y \
-    php8.2 \
-    php8.2-fpm \
-    php8.2-mysql \
-    php8.2-curl \
-    php8.2-gd \
-    php8.2-intl \
-    php8.2-mbstring \
-    php8.2-soap \
-    php8.2-xml \
-    php8.2-xmlrpc \
-    php8.2-zip \
-    wget \
-    unzip \
-    netcat-openbsd \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install -y php7.4-fpm php7.4-mysql wget mariadb-client netcat-openbsd
 RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-    && php wp-cli.phar --info \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/wp
-    
-WORKDIR /var/www/html
 
-RUN mkdir -p /run/php
+RUN mkdir -p /run/php && chown -R www-data:www-data /run/php
 
-COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY ./conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 
-COPY tools/wordpress-init.sh /usr/local/bin/wordpress-init.sh
+COPY ./tools/wordpress-init.sh /usr/local/bin/wordpress-init.sh
 RUN chmod +x /usr/local/bin/wordpress-init.sh
 
-EXPOSE 9000
+WORKDIR /var/www/html
 
-ENTRYPOINT ["/usr/local/bin/wordpress-init.sh"]
+ENTRYPOINT [ "/usr/local/bin/wordpress-init.sh" ]
+
+CMD ["php-fpm7.4", "--nodaemonize"]
