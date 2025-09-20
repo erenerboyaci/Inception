@@ -20,18 +20,17 @@ restart: down up
 clean:
 	$(COMPOSE) $(FILE) down -v --remove-orphans
 
-fclean: clean
+fclean:
 	$(COMPOSE) $(FILE) down -v --rmi all --remove-orphans
 	docker system prune -af
 	sudo rm -rf /home/merboyac/data/
 	rm -f ../secrets/db_password.txt ../secrets/db_root_password.txt
 	rm -rf ./secrets/certs
-	sudo rm -rf /home/merboyac/data/mysql
-	sudo rm -rf /home/merboyac/data/wordpress
 
 logs:
-	docker logs srcs-mariadb-1
-	docker logs srcs-nginx-1
-	docker logs srcs-wordpress-1
+	$(COMPOSE) $(FILE) logs -f
 
-.PHONY: dirs up build down restart clean fclean
+
+
+
+.PHONY: dirs up build down restart clean fclean logs
